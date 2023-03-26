@@ -22,18 +22,11 @@ module Cache_TOP(
     output [3:0] wr_strb_o, // write strobe output
     output write_data_o // data cache is writing to main memory
     );
-    wire write_through_o;  // write through signal indicating that there is will be a write through in L2 and L1 data cache
-    // L2 wires
-    wire [127:0] L2_data_block_p1_o;
-    wire [127:0] L2_data_block_p2_o;
-    wire [127:0] L2_data_block_p1_i;
-    wire [18:0] L2_p2_addr; //miss_next varsa sonraki adres olcak 
-    wire [15:0] L2_byte_enable_p1_i;
-    wire [15:0] L2_byte_enable_p2_i;
-    wire L2_read_p1;
-    wire L2_read_p2;
-    wire L2_write_p1;
-    wire L2_write_p2;
+    wire write_through_o;  // write through signal indicating that there is will be a write through  L1 data cache
+
+ 
+
+    wire [127:0] data_block_p1_i;
     wire L2_p1_hit;
     wire L2_p2_hit;
     wire ram_write_start_o; // first write will be done on L2 cache (to not corrupt replacement algorithm)
@@ -49,7 +42,7 @@ module Cache_TOP(
     wire read_data_o; // read data command coming from controller in case of miss 
     wire L1_data_hit;
     wire [127:0] L1_data_block_o;
-    assign L2_data_block_p1_i = (ram_read_o == 1) ? {4{ram_data_i}} : L1_data_block_o; // if there is a ram_read then data port 1 must be ram data input else it is coming from L1 data cache
+    assign data_block_p1_i = (ram_read_o == 1) ? {4{ram_data_i}} : L1_data_block_o; // if there is a ram_read then data port 1 must be ram data input else it is coming from L1 data cache
 
     Cache_MEM_L1_data Cache_L1_DATA_INST( 
     .clk_i(clk_i),
@@ -62,7 +55,7 @@ module Cache_TOP(
     .write_through_i(write_through_o),
     .addr_i(L1_data_addr_i),        
     .data_core_i(core_data_i), 
-    .data_L2_i(L2_data_block_p1_o), 
+    .data_i(data_block_p1_i), 
     .data_block_o(L1_data_block_o), // buna gerek yok core_data_o'dan yola cikilarak ta yapilabilir?
     .data_o(core_data_o), 
     .hit_o(L1_data_hit)             
@@ -76,38 +69,18 @@ module Cache_TOP(
     .write_i(L1_instr_write), 
     .write_next_i(write_next_i),
     .addr_i(L1_instr_addr_i[18:1]),          // 
-    .data_L2_i(L2_data_block_p2_o), 
+    
     .data_o(core_instr_o),
-    .hit_o(L1_instr_hit),           
+    .hit_o(L1_instr_hit),    
+    .data_L2_i({4{ram_data_i}}),        
     .miss_next_o(L1_miss_next)      
-    );
-
-    Cache_MEM_L2 Cache_L2_inst( 
-    .clk_i(clk_i),
-    .rst_i(rst_i), 
-    .read_p1_i(L2_read_p1),                 
-    .read_p2_i(L2_read_p2),                 
-    .write_p1_i(L2_write_p1),                
-    .write_p2_i(L2_write_p2),                
-    .data_block_p1_i(L2_data_block_p1_i),  
-    .data_block_p2_i({4{ram_data_i}}),      
-    .byte_enable_p1_i(L2_byte_enable_p1_i),
-    .byte_enable_p2_i(L2_byte_enable_p2_i),
-    .addr_p1_i(L1_data_addr_i[14:0]),      // word and offset bits do not matter for L2 cache 
-    .addr_p2_i(L2_p2_addr[14:0]),          // word and offset bits do not matter for L2 cache
-    .ram_write_start_i(ram_write_start_o),  
-    .write_through_i(write_through_o),      
-    .data_block_p1_o(L2_data_block_p1_o), 
-    .data_block_p2_o(L2_data_block_p2_o), 
-    .hit_p1_o(L2_p1_hit),        
-    .hit_p2_o(L2_p2_hit)         
     );
 
     Cache_controller Cache_controller_inst(
     .clk_i(clk_i),
     .mem_clk_i(mem_clk_i),
     .rst_i(rst_i),
-    .L2_data_block_p1_i(L2_data_block_p1_o),
+    .data_block_p1_i(data_block_p1_i),
     .L1_data_addr_i(L1_data_addr_i),
     .L1_instr_addr_i(L1_instr_addr_i),
     .L2_p1_hit_i(L2_p1_hit),
@@ -121,14 +94,7 @@ module Cache_TOP(
     .DATA_write_instruction_i(DATA_write_instruction_i),
     .write_L2_o(write_L2),
     .L1_instr_write_o(L1_instr_write),
-    .L2_read_p1_o(L2_read_p1),
-    .L2_read_p2_o(L2_read_p2),
-    .L2_write_p1_o(L2_write_p1),
-    .L2_write_p2_o(L2_write_p2),
-    .L2_byte_enable_p1_o(L2_byte_enable_p1_i),
-    .L2_byte_enable_p2_o(L2_byte_enable_p2_i),
-    .L2_p2_addr_o(L2_p2_addr),
-    .ram_data_o(ram_data_o),
+    .ram_data_o(ram_data_o),   
     .ram_read_addr_o(ram_read_addr_o),
     .ram_write_addr_o(ram_write_addr_o),
     .ram_read_o(ram_read_o),

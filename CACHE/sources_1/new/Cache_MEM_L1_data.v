@@ -4,7 +4,7 @@ module Cache_MEM_L1_data#( // L1 data cache top module
     parameter block_size = 128,
     parameter tag_size = 9,
     parameter idx_size = 6,
-    parameter block_no = 64,
+    parameter block_no = 128,
     parameter word_size = 2,
     parameter offset_size = 2
     )
@@ -16,10 +16,11 @@ module Cache_MEM_L1_data#( // L1 data cache top module
     input [2:0] read_instruction_i,  //load : 000 => LBU, 001 => LB, 010 => LHU, 011 => LH, 100 => LWU, 101 => LW, 110 => LD
     input [2:0] write_instruction_i, //store: 00 => SB, 01 => SH, 10 => SW, 11 => SD
     input write_L2_i, 
+    input ram_write_start_i,
     input write_through_i,
     input [tag_size+idx_size+word_size+offset_size-1:0] addr_i, 
     input [63:0] data_core_i,
-    input [block_size-1:0] data_L2_i,
+    input [block_size-1:0] data_i,
     output [block_size-1:0]  data_block_o, 
     output [63:0] data_o, 
     output hit_o 
@@ -119,7 +120,7 @@ module Cache_MEM_L1_data#( // L1 data cache top module
         .idx_i(idx_input),
         .hit_s1_i(hit_s1),
         .hit_s2_i(hit_s2),
-        .write_L2_i(write_L2_i),
+        .ram_write_start_i(write_L2_i),
         .write_through_i(write_through_i),
         .valid_out_s1_i(valid_out_s1),
         .valid_out_s2_i(valid_out_s2),

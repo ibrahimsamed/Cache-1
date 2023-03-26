@@ -7,7 +7,7 @@ module Cache_controller#(
         input clk_i,
         input mem_clk_i,
         input rst_i,
-        input [127:0] L2_data_block_p1_i,
+        input [127:0] data_block_p1_i,
         input [18:0] L1_data_addr_i,
         input [18:0] L1_instr_addr_i,
         input L2_p1_hit_i,
@@ -132,9 +132,9 @@ module Cache_controller#(
     reg [18:0] ram_addr_L2_data;  // L2 data address port
     reg [18:0] ram_addr_L2_data_write; // ram write address
     //
-    assign ram_data_o = (ram_write_addr_o[3:2] == 2'b11) ? L2_data_block_p1_i[127:96] : 
-                        ((ram_write_addr_o[3:2] == 2'b10) ? L2_data_block_p1_i[95:64] : 
-                        ((ram_write_addr_o[3:2] == 2'b01) ? L2_data_block_p1_i[63:32] : L2_data_block_p1_i[31:0]));
+    assign ram_data_o = (ram_write_addr_o[3:2] == 2'b11) ? data_block_p1_i[127:96] : 
+                        ((ram_write_addr_o[3:2] == 2'b10) ? data_block_p1_i[95:64] : 
+                        ((ram_write_addr_o[3:2] == 2'b01) ? data_block_p1_i[63:32] : data_block_p1_i[31:0]));
     assign ram_read_o       = main_mem_transfer_instr | main_mem_transfer_data;
     assign ram_write_addr_o = {13'b0100_0000_0000_0,ram_addr_L2_data_write};  // from specification ram address is being arranged
     assign ram_read_addr_o  = transfer_instr == 1 ? {13'b0100_0000_0000_0,ram_addr_L2_instr} : {13'b0100_0000_0000_0,ram_addr_L2_data}; // decide on which address will be used for ram

@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 module Cache_replacement_data#(
       parameter idx_size = 6,
-      parameter block_no = 64
+      parameter block_no = 128
       )
       (
       input rst_i,
@@ -10,7 +10,8 @@ module Cache_replacement_data#(
       input [idx_size -1 :0] idx_i,
       input hit_s1_i, // set 1 hit input
       input hit_s2_i, // set 2 hit input
-      input write_L2_i, // L2 write signal
+      //input write_L2_i, // L2 write signal
+      input ram_write_start_i,
       input write_through_i, // write will be done as write throug
       input valid_out_s1_i,
       input valid_out_s2_i,
@@ -38,11 +39,11 @@ module Cache_replacement_data#(
           we_s1_o = 1'b0;
         end
         else if (write_i) begin 
-          if(hit_s1_i & (~write_L2_i | write_through_i)) begin  // if there is write_through look for hit  if there is a hit in set 1 then write into set1
+          if(hit_s1_i & (~ram_write_start_i | write_through_i)) begin  // if there is write_through look for hit  if there is a hit in set 1 then write into set1
             we_s1_o = 1'b1; 
             we_s2_o = 1'b0; 
           end
-          else if(hit_s2_i & (~write_L2_i | write_through_i)) begin // if there is write_through look for hit if there is a hit in set 2 then write into set2
+          else if(hit_s2_i & (~ram_write_start_i | write_through_i)) begin // if there is write_through look for hit if there is a hit in set 2 then write into set2
             we_s2_o = 1'b1;
             we_s1_o = 1'b0;
           end
